@@ -217,7 +217,7 @@ cli.printVersion = function(cb) {
 // TODO: docs
 cli.main = function(cb) {
     timer.start = new Date();
-    cli.scanFiles();
+    runtime.loadSourceFiles();
 
     if (runtime.sourceFiles.length) {
         cli.createParser()
@@ -231,80 +231,6 @@ cli.main = function(cb) {
 
     timer.finish = new Date();
     cb(0);
-};
-
-function readPackageJson(filepath) {
-    var fs = require('jsdoc/fs');
-
-    try {
-        return stripJsonComments( fs.readFileSync(filepath, 'utf8') );
-    }
-    catch (e) {
-        logger.error('Unable to read the package file "%s"', filepath);
-        return null;
-    }
-}
-
-function buildSourceList() {
-    var fs = require('jsdoc/fs');
-    var Readme = require('jsdoc/readme');
-
-    var packageJson;
-    var readmeHtml;
-    var sourceFile;
-    var sourceFiles = runtime.opts._ ? runtime.opts._.slice(0) : [];
-
-    if (runtime.conf.source && runtime.conf.source.include) {
-        sourceFiles = sourceFiles.concat(runtime.conf.source.include);
-    }
-
-    // load the user-specified package/README files, if any
-    if (runtime.opts.package) {
-        packageJson = readPackageJson(runtime.opts.package);
-    }
-    if (runtime.opts.readme) {
-        readmeHtml = new Readme(runtime.opts.readme).html;
-    }
-
-    // source files named `package.json` or `README.md` get special treatment, unless the user
-    // explicitly specified a package and/or README file
-    for (var i = 0, l = sourceFiles.length; i < l; i++) {
-        sourceFile = sourceFiles[i];
-
-        if ( !runtime.opts.package && /\bpackage\.json$/i.test(sourceFile) ) {
-            packageJson = readPackageJson(sourceFile);
-            sourceFiles.splice(i--, 1);
-        }
-
-        if ( !runtime.opts.readme && /(\bREADME|\.md)$/i.test(sourceFile) ) {
-            readmeHtml = new Readme(sourceFile).html;
-            sourceFiles.splice(i--, 1);
-        }
-    }
-
-    props.packageJson = packageJson;
-    runtime.opts.readme = readmeHtml;
-
-    return sourceFiles;
-}
-
-// TODO: docs
-cli.scanFiles = function() {
-    var Filter = require('jsdoc/src/filter').Filter;
-
-    var filter;
-
-    runtime.opts._ = buildSourceList();
-
-    // are there any files to scan and parse?
-    if (runtime.conf.source && runtime.opts._.length) {
-        filter = new Filter(runtime.conf.source);
-
-        runtime.sourceFiles = scanner.scan(runtime.opts._, (runtime.opts.recurse ? 10 : undefined),
-            filter);
-    }
-
-    return cli;
 };
 
 function resolvePluginPaths(paths) {
@@ -356,7 +282,7 @@ cli.parseFiles = function() {
     props.docs = docs = parser.parse(runtime.sourceFiles, runtime.opts.encoding);
 
     // If there is no package.json, just create an empty package
-    packageDocs = new Package(props.packageJson);
+    packageDocs = new Package(runtime.opts.packageJson);
     packageDocs.files = runtime.sourceFiles || [];
     docs.push(packageDocs);
 

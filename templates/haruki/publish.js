@@ -211,7 +211,8 @@ exports.publish = function(data, opts) {
             console.log( xml('jsdoc', root) );
         }
         else {
-            global.dump(root);
+            var dump = require('../../lib/jsdoc/util/dumper').dump;
+            console.log(dump(root));
         }
     }
     else {

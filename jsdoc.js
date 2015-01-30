@@ -123,26 +123,6 @@ global.app = {
     }
 };
 
-/**
- * Recursively print an object's properties to stdout. This method is safe to use with objects that
- * contain circular references. In addition, on Mozilla Rhino, this method is safe to use with
- * native Java objects.
- *
- * @global
- * @name dump
- * @private
- * @param {Object} obj - Object(s) to print to stdout.
- */
-global.dump = function() {
-    'use strict';
-
-    var _dump = require('./lib/jsdoc/util/dumper').dump;
-
-    for (var i = 0, l = arguments.length; i < l; i++) {
-        console.log( _dump(arguments[i]) );
-    }
-};
-
 (function() {
     'use strict';
 

@@ -6,82 +6,6 @@
  * @license See LICENSE.md file included in this distribution.
  */
 
-/**
- * Data representing the environment in which this app is running.
- *
- * @namespace
- * @name env
- */
-global.env = {
-    /**
-     * Running start and finish times.
-     *
-     * @memberof env
-     */
-    run: {
-        start: new Date(),
-        finish: null
-    },
-
-    /**
-     * The command-line arguments passed into JSDoc.
-     *
-     * @type Array
-     * @memberof env
-     */
-    args: [],
-
-    /**
-     * The parsed JSON data from the configuration file.
-     *
-     * @type Object
-     * @memberof env
-     */
-    conf: {},
-
-    /**
-     * The absolute path to the base directory of the JSDoc application.
-     *
-     * @private
-     * @type string
-     * @memberof env
-     */
-    dirname: '.',
-
-    /**
-     * The user's working directory at the time that JSDoc was started.
-     *
-     * @private
-     * @type string
-     * @memberof env
-     */
-    pwd: null,
-
-    /**
-     * The command-line options, parsed into a key/value hash.
-     *
-     * @type Object
-     * @memberof env
-     * @example if (global.env.opts.help) { console.log('Helpful message.'); }
-    */
-    opts: {},
-
-    /**
-     * The source files that JSDoc will parse.
-     * @type Array
-     * @memberof env
-     */
-    sourceFiles: [],
-
-    /**
-     * The JSDoc version number and revision date.
-     *
-     * @type Object
-     * @memberof env
-     */
-    version: {}
-};
-
 // initialize the environment for the current JavaScript VM
 (function(args) {
     'use strict';
@@ -109,20 +33,6 @@ global.env = {
     require('./lib/jsdoc/util/runtime').initialize(args);
 })( Array.prototype.slice.call(arguments, 0) );
 
-/**
- * Data that must be shared across the entire application.
- *
- * @namespace
- * @name app
- */
-global.app = {
-    jsdoc: {
-        name: require('./lib/jsdoc/name'),
-        parser: null,
-        scanner: new (require('./lib/jsdoc/src/scanner').Scanner)()
-    }
-};
-
 (function() {
     'use strict';
 
@@ -135,10 +45,9 @@ global.app = {
         cli.exit(errorCode || 0);
     }
 
-    cli.setVersionInfo()
-        .loadConfig();
+    cli.loadConfig();
 
-    if (!global.env.opts.test) {
+    if (!runtime.opts.test) {
         cli.configureLogger();
     }
 

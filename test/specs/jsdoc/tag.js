@@ -9,6 +9,7 @@ describe('jsdoc/tag', function() {
         type: require('jsdoc/tag/type')
     };
     var logger = require('jsdoc/util/logger');
+    var runtime = require('jsdoc/util/runtime');
 
     it('should exist', function() {
         expect(jsdoc.tag).toBeDefined();
@@ -174,16 +175,16 @@ describe('jsdoc/tag', function() {
                     expect(typeof tag.value.type.parsedType).toBe('object');
 
                     descriptor = Object.getOwnPropertyDescriptor(tag.value.type, 'parsedType');
-                    expect(descriptor.enumerable).toBe(!!global.env.opts.debug);
+                    expect(descriptor.enumerable).toBe(!!runtime.opts.debug);
                 }
             }
 
             it('if the tag has a type, tag.value should contain the type information', function() {
                 // we assume jsdoc/tag/type.parse works (it has its own tests to verify this);
-                var debug = !!global.env.opts.debug;
+                var debug = !!runtime.opts.debug;
 
                 [true, false].forEach(function(bool) {
-                    global.env.opts.debug = bool;
+                    runtime.opts.debug = bool;
                     createTags();
 
                     verifyTagType(tagType);
@@ -191,7 +192,7 @@ describe('jsdoc/tag', function() {
                     verifyTagType(tagParam);
                 });
 
-                global.env.opts.debug = debug;
+                runtime.opts.debug = debug;
             });
 
             it('if the tag has a description beyond the name/type, this should be in tag.value.description', function() {

@@ -2,11 +2,12 @@
 describe('plugins/overloadHelper', function() {
     var parser = jasmine.createParser();
     var path = require('jsdoc/path');
+    var runtime = require('jsdoc/util/runtime');
 
     var docSet;
 
     var pluginPath = 'plugins/overloadHelper';
-    var pluginPathResolved = path.resolve(env.dirname, pluginPath);
+    var pluginPathResolved = path.resolve(runtime.dirname, pluginPath);
     var plugin = require(pluginPathResolved);
 
     require('jsdoc/plugins').installPlugins([pluginPathResolved], parser);

@@ -5,6 +5,7 @@ describe('jsdoc/tag/validator', function() {
     var logger = require('jsdoc/util/logger');
     var tag = require('jsdoc/tag');
     var validator = require('jsdoc/tag/validator');
+    var runtime = require('jsdoc/util/runtime');
 
     it('should exist', function() {
         expect(validator).toBeDefined();
@@ -19,7 +20,7 @@ describe('jsdoc/tag/validator', function() {
     describe('validate', function() {
         var dictionary = require('jsdoc/tag/dictionary');
 
-        var allowUnknown = !!global.env.conf.tags.allowUnknownTags;
+        var allowUnknown = !!runtime.conf.tags.allowUnknownTags;
         var badTag = { title: 'lkjasdlkjfb' };
         var badTag2 = new tag.Tag('type', '{string} I am a string!');
         var meta = {
@@ -40,18 +41,18 @@ describe('jsdoc/tag/validator', function() {
         });
 
         afterEach(function() {
-            global.env.conf.tags.allowUnknownTags = allowUnknown;
+            runtime.conf.tags.allowUnknownTags = allowUnknown;
         });
 
         it('logs an error if the tag is not in the dictionary and conf.tags.allowUnknownTags is false', function() {
-            global.env.conf.tags.allowUnknownTags = false;
+            runtime.conf.tags.allowUnknownTags = false;
             validateTag(badTag);
 
             expect(logger.error).toHaveBeenCalled();
         });
 
         it('does not log an error if the tag is not in the dictionary and conf.tags.allowUnknownTags is true', function() {
-            global.env.conf.tags.allowUnknownTags = true;
+            runtime.conf.tags.allowUnknownTags = true;
             validateTag(badTag);
 
             expect(logger.error).not.toHaveBeenCalled();
@@ -88,7 +89,7 @@ describe('jsdoc/tag/validator', function() {
         });
 
         it('logs meta.comment when present', function() {
-            global.env.conf.tags.allowUnknownTags = false;
+            runtime.conf.tags.allowUnknownTags = false;
             validateTag(badTag);
 
             expect(logger.error.mostRecentCall.args[0]).toContain(meta.comment);

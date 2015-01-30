@@ -7,6 +7,7 @@
 
 var fs = require('jsdoc/fs');
 var path = require('path');
+var runtime = require('jsdoc/util/runtime');
 
 exports.handlers = {
     /**
@@ -23,7 +24,7 @@ exports.handlers = {
             var pathArg = $.match(/\".*\"/)[0].replace(/"/g, '');
             var fullPath = path.join(e.filename, '..', pathArg);
 
-            var partialData = fs.readFileSync(fullPath, global.env.opts.encoding);
+            var partialData = fs.readFileSync(fullPath, runtime.opts.encoding);
 
             return partialData;
         });

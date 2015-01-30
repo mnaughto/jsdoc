@@ -6,7 +6,8 @@
  */
 'use strict';
 
-var config = global.env.conf.markdown || {};
+var runtime = require('jsdoc/util/runtime');
+var config = runtime.conf.markdown || {};
 var defaultTags = [
     'author',
     'classdesc',

@@ -2,6 +2,7 @@
 var fs = require('jsdoc/fs');
 var path = require('jsdoc/path');
 var util = require('util');
+var runtime = require('jsdoc/util/runtime');
 
 var jsdoc = {
     augment: require('jsdoc/augment'),
@@ -41,10 +42,10 @@ jasmine.getParseResults = function() {
 jasmine.jsParser = (function() {
     var parser = jsdoc.util.runtime.isRhino() ? 'rhino' : 'esprima';
 
-    if (env.opts.query && env.opts.query.parser) {
-        parser = env.opts.query.parser;
+    if (runtime.opts.query && runtime.opts.query.parser) {
+        parser = runtime.opts.query.parser;
         // remove this so the config tests don't complain
-        delete env.opts.query;
+        delete runtime.opts.query;
     }
 
     return parser;
@@ -61,11 +62,11 @@ jasmine.initialize = function(done, verbose) {
     }
 
     var reporterOpts = {
-        color: env.opts.nocolor === true ? false : true,
+        color: runtime.opts.nocolor === true ? false : true,
         onComplete: done
     };
 
-    reporter = env.opts.verbose ? new jasmineNode.TerminalVerboseReporter(reporterOpts) :
+    reporter = runtime.opts.verbose ? new jasmineNode.TerminalVerboseReporter(reporterOpts) :
         new jasmineNode.TerminalReporter(reporterOpts);
     jasmineEnv.addReporter(reporter);
 
@@ -108,7 +109,7 @@ jasmine.executeSpecsInFolder = function(folder, done, opts) {
     for (var i = 0, len = specsList.length; i < len; ++i) {
         filename = specsList[i];
         require(filename.path().replace(/\\/g, '/').
-            replace(new RegExp('^' + env.dirname + '/test'), './').
+            replace(new RegExp('^' + runtime.dirname + '/test'), './').
             replace(/\.\w+$/, ''));
     }
 
@@ -146,7 +147,7 @@ jasmine.getDocSetFromFile = function(filename, parser, validate) {
     var doclets;
     var validationResult;
 
-    var sourceCode = fs.readFileSync( path.join(env.dirname, filename), 'utf8' );
+    var sourceCode = fs.readFileSync( path.join(runtime.dirname, filename), 'utf8' );
     var testParser = parser || jasmine.createParser();
 
     jsdoc.src.handlers.attachTo(testParser);

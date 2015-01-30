@@ -6,32 +6,31 @@ describe('module names', function() {
 
     var doclets;
 
-    var env = global.env;
-    var pwd = env.pwd;
+    var pwd = runtime.pwd;
     var srcParser = null;
-    var sourceFiles = env.sourceFiles.slice(0);
-    var sourcePaths = env.opts._.slice(0);
+    var sourceFiles = runtime.sourceFiles.slice(0);
+    var sourcePaths = runtime.opts._.slice(0);
 
     beforeEach(function() {
-        env.opts._ = [path.normalize(env.pwd + '/test/fixtures/modules/data/')];
-        env.pwd = env.dirname;
-        env.sourceFiles = [];
+        runtime.opts._ = [path.normalize(runtime.pwd + '/test/fixtures/modules/data/')];
+        runtime.pwd = runtime.dirname;
+        runtime.sourceFiles = [];
         srcParser = jasmine.createParser();
         require('jsdoc/src/handlers').attachTo(srcParser);
     });
 
     afterEach(function() {
-        env.opts._ = sourcePaths;
-        env.pwd = pwd;
-        env.sourceFiles = sourceFiles;
+        runtime.opts._ = sourcePaths;
+        runtime.pwd = pwd;
+        runtime.sourceFiles = sourceFiles;
     });
 
     it('should create a name from the file path when no documented module name exists', function() {
         var filename = 'test/fixtures/modules/data/mod-1.js';
 
-        env.sourceFiles.push(filename);
+        runtime.sourceFiles.push(filename);
         doclets = srcParser.parse(
-            path.normalize( path.join(env.pwd, filename) )
+            path.normalize( path.join(runtime.pwd, filename) )
         );
         expect(doclets.length).toBeGreaterThan(1);
         expect(doclets[0].longname).toBe('module:mod-1');
@@ -43,11 +42,11 @@ describe('module names', function() {
             var Doclet = require('jsdoc/doclet').Doclet;
             var doclet;
 
-            env.sourceFiles = [
+            runtime.sourceFiles = [
                 'C:\\Users\\Jane Smith\\myproject\\index.js',
                 'C:\\Users\\Jane Smith\\myproject\\lib\\mymodule.js'
             ];
-            env.opts._ = [];
+            runtime.opts._ = [];
 
             doclet = new Doclet('/** @module */', {
                 lineno: 1,
@@ -61,9 +60,9 @@ describe('module names', function() {
     it('should use the documented module name if available', function() {
         var filename = 'test/fixtures/modules/data/mod-2.js';
 
-        env.sourceFiles.push(filename);
+        runtime.sourceFiles.push(filename);
         doclets = srcParser.parse(
-            path.normalize( path.join(env.pwd, filename) )
+            path.normalize( path.join(runtime.pwd, filename) )
         );
 
         expect(doclets.length).toBeGreaterThan(1);

@@ -2,6 +2,7 @@
 
 describe('jsdoc/tutorial', function() {
     var tutorial = require('jsdoc/tutorial');
+    var runtime = require('jsdoc/util/runtime');
 
     var name = 'tuteID';
     var content = 'Tutorial content blah blah blah & <';
@@ -218,10 +219,10 @@ describe('jsdoc/tutorial', function() {
         });
 
         describe('parse', function() {
-            var markdownConfig = global.env.conf.markdown;
+            var markdownConfig = runtime.conf.markdown;
 
             function setMarkdownConfig(config) {
-                global.env.conf.markdown = config;
+                runtime.conf.markdown = config;
             }
 
             beforeEach(function() {
@@ -229,7 +230,7 @@ describe('jsdoc/tutorial', function() {
             });
 
             afterEach(function() {
-                global.env.conf.markdown = markdownConfig;
+                runtime.conf.markdown = markdownConfig;
             });
 
             it('Tutorials with HTML type return content as-is', function() {

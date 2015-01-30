@@ -2,6 +2,7 @@
 
 describe('jsdoc/util/markdown', function() {
     var markdown = require('jsdoc/util/markdown');
+    var runtime = require('jsdoc/util/runtime');
 
     it('should exist', function() {
         expect(markdown).toBeDefined();
@@ -14,14 +15,14 @@ describe('jsdoc/util/markdown', function() {
     });
 
     describe('getParser', function() {
-        var originalMarkdownConf = global.env.conf.markdown;
+        var originalMarkdownConf = runtime.conf.markdown;
 
         function setMarkdownConf(hash) {
-            global.env.conf.markdown = hash;
+            runtime.conf.markdown = hash;
         }
 
         afterEach(function() {
-            global.env.conf.markdown = originalMarkdownConf;
+            runtime.conf.markdown = originalMarkdownConf;
         });
 
         it('should retrieve a function when called with default settings', function() {

@@ -5,33 +5,32 @@ describe('@overview tag', function() {
     var runtime = require('jsdoc/util/runtime');
 
     var doclets;
-    var env = global.env;
 
-    var pwd = env.pwd;
+    var pwd = runtime.pwd;
     var srcParser = null;
-    var sourceFiles = env.sourceFiles.slice(0);
-    var sourcePaths = env.opts._.slice(0);
+    var sourceFiles = runtime.sourceFiles.slice(0);
+    var sourcePaths = runtime.opts._.slice(0);
 
     beforeEach(function() {
-        env.opts._ = [path.normalize(env.pwd + '/test/fixtures/')];
-        env.pwd = env.dirname;
-        env.sourceFiles = [];
+        runtime.opts._ = [path.normalize(runtime.pwd + '/test/fixtures/')];
+        runtime.pwd = runtime.dirname;
+        runtime.sourceFiles = [];
         srcParser = jasmine.createParser();
         require('jsdoc/src/handlers').attachTo(srcParser);
     });
 
     afterEach(function() {
-        env.opts._ = sourcePaths;
-        env.pwd = pwd;
-        env.sourceFiles = sourceFiles;
+        runtime.opts._ = sourcePaths;
+        runtime.pwd = pwd;
+        runtime.sourceFiles = sourceFiles;
     });
 
     it('When a file overview tag appears in a doclet, the name of the doclet should contain the path to the file.', function() {
         var filename = 'test/fixtures/file.js';
 
-        env.sourceFiles.push(filename);
+        runtime.sourceFiles.push(filename);
         doclets = srcParser.parse(
-            path.normalize( path.join(env.pwd, filename) )
+            path.normalize( path.join(runtime.pwd, filename) )
         );
         expect(doclets[0].name).toMatch(/^file\.js$/);
     });
@@ -39,9 +38,9 @@ describe('@overview tag', function() {
     it('The name and longname should be equal', function() {
         var filename = 'test/fixtures/file.js';
 
-        env.sourceFiles.push(filename);
+        runtime.sourceFiles.push(filename);
         doclets = srcParser.parse(
-            path.normalize( path.join(env.pwd, filename) )
+            path.normalize( path.join(runtime.pwd, filename) )
         );
         expect(doclets[0].name).toBe(doclets[0].longname);
     });
@@ -58,14 +57,14 @@ describe('@overview tag', function() {
         var fakePath = '/Users/jdoe/foo/bar/someproject/junk/okayfile.js';
 
         // set up the environment to reflect the fake filepath
-        env.pwd = '/Users/jdoe/someproject';
-        env.sourceFiles = [];
-        env.opts._ = [fakePath];
+        runtime.pwd = '/Users/jdoe/someproject';
+        runtime.sourceFiles = [];
+        runtime.opts._ = [fakePath];
 
         // ensure that paths are resolved consistently on Windows
         if (os.platform().indexOf('win') === 0) {
             fakePath = 'c:' + fakePath;
-            env.pwd = 'c:' + env.pwd;
+            runtime.pwd = 'c:' + runtime.pwd;
         }
 
         // create a doclet with a fake filepath, then add a `@file` tag

@@ -117,13 +117,18 @@ global.console = (function() {
     };
 })();
 
+var uriParts = require.main.uri.split('/');
+uriParts.pop();
+
+var dirname = String( new java.io.File(new java.net.URI(uriParts.join('/'))) );
+
 /**
  * Emulate Node.js process functions.
  * @see http://nodejs.org/api/process.html
  */
 global.process = {
     // not quite right, but close enough
-    argv: ['java', env.dirname + '/jsdoc.js']
+    argv: ['java', dirname + '/jsdoc.js']
         .concat( Array.prototype.slice.call(arguments, 0) ),
     // this depends on a hack in our version of Rhino
     cwd: function cwd() {

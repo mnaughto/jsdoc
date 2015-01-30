@@ -2,11 +2,12 @@
 describe("escapeHtml plugin", function() {
     var parser = jasmine.createParser();
     var path = require('jsdoc/path');
+    var runtime = require('jsdoc/util/runtime');
 
     var docSet;
 
     var pluginPath = 'plugins/escapeHtml';
-    var pluginPathResolved = path.join(env.dirname,pluginPath);
+    var pluginPathResolved = path.join(runtime.dirname,pluginPath);
     var plugin = require(pluginPathResolved);
 
     require('jsdoc/plugins').installPlugins([pluginPathResolved], parser);

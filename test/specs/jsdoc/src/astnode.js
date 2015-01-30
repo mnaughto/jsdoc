@@ -3,6 +3,7 @@
 describe('jsdoc/src/astnode', function() {
     var astnode = require('jsdoc/src/astnode');
     var doop = require('jsdoc/util/doop');
+    var runtime = require('jsdoc/util/runtime');
     var espree = require('espree');
     var Syntax = require('jsdoc/src/syntax').Syntax;
 
@@ -81,11 +82,11 @@ describe('jsdoc/src/astnode', function() {
         var debugEnabled;
 
         beforeEach(function() {
-            debugEnabled = !!global.env.opts.debug;
+            debugEnabled = !!runtime.opts.debug;
         });
 
         afterEach(function() {
-            global.env.opts.debug = debugEnabled;
+            runtime.opts.debug = debugEnabled;
         });
 
         it('should return null for undefined input', function() {
@@ -123,7 +124,7 @@ describe('jsdoc/src/astnode', function() {
             var descriptor;
             var node;
 
-            global.env.opts.debug = true;
+            runtime.opts.debug = true;
             node = astnode.addNodeProperties({});
             descriptor = Object.getOwnPropertyDescriptor(node, 'nodeId');
 
@@ -157,7 +158,7 @@ describe('jsdoc/src/astnode', function() {
             var descriptor;
             var node;
 
-            global.env.opts.debug = true;
+            runtime.opts.debug = true;
             node = astnode.addNodeProperties({});
             descriptor = Object.getOwnPropertyDescriptor(node, 'parentId');
 
@@ -169,7 +170,7 @@ describe('jsdoc/src/astnode', function() {
             var descriptor;
             var node;
 
-            global.env.opts.debug = true;
+            runtime.opts.debug = true;
             node = astnode.addNodeProperties({});
 
             expect(node.parentId).toBe(null);
@@ -180,7 +181,7 @@ describe('jsdoc/src/astnode', function() {
             var node;
             var parent;
 
-            global.env.opts.debug = true;
+            runtime.opts.debug = true;
             node = astnode.addNodeProperties({});
             parent = astnode.addNodeProperties({});
             node.parent = parent;
@@ -215,7 +216,7 @@ describe('jsdoc/src/astnode', function() {
             var descriptor;
             var node;
 
-            global.env.opts.debug = true;
+            runtime.opts.debug = true;
             node = astnode.addNodeProperties({});
             descriptor = Object.getOwnPropertyDescriptor(node, 'enclosingScopeId');
 
@@ -228,7 +229,7 @@ describe('jsdoc/src/astnode', function() {
             var descriptor;
             var node;
 
-            global.env.opts.debug = true;
+            runtime.opts.debug = true;
             node = astnode.addNodeProperties({});
 
             expect(node.enclosingScopeId).toBe(null);
@@ -240,7 +241,7 @@ describe('jsdoc/src/astnode', function() {
             var enclosingScope;
             var node;
 
-            global.env.opts.debug = true;
+            runtime.opts.debug = true;
             node = astnode.addNodeProperties({});
             enclosingScope = astnode.addNodeProperties({});
             node.enclosingScope = enclosingScope;

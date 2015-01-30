@@ -2,15 +2,16 @@
 describe("railsTemplate plugin", function() {
     var parser = jasmine.createParser();
     var path = require('jsdoc/path');
+    var runtime = require('jsdoc/util/runtime');
 
-    var pluginPath = path.join(env.dirname, 'plugins/railsTemplate');
+    var pluginPath = path.join(runtime.dirname, 'plugins/railsTemplate');
     var plugin = require(pluginPath);
 
     require('jsdoc/plugins').installPlugins([pluginPath], parser);
     require('jsdoc/src/handlers').attachTo(parser);
 
     it("should remove <% %> rails template tags from the source of *.erb files", function() {
-        var docSet = parser.parse([path.join(env.dirname, "plugins/test/fixtures/railsTemplate.js.erb")]);
+        var docSet = parser.parse([path.join(runtime.dirname, "plugins/test/fixtures/railsTemplate.js.erb")]);
 
         expect(docSet[2].description).toEqual("Remove rails tags from the source input (e.g. )");
     });

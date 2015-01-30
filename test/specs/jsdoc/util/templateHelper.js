@@ -12,6 +12,7 @@ describe("jsdoc/util/templateHelper", function() {
     var logger = require('jsdoc/util/logger');
     var resolver = require('jsdoc/tutorial/resolver');
     var taffy = require('taffydb').taffy;
+    var runtime = require('jsdoc/util/runtime');
 
     helper.registerLink('test', 'path/to/test.html');
 
@@ -986,12 +987,12 @@ describe("jsdoc/util/templateHelper", function() {
     });
 
     describe("prune", function() {
-        var access = global.env.opts.access;
-        var priv = !!global.env.opts.private;
+        var access = runtime.opts.access;
+        var priv = !!runtime.opts.private;
 
         afterEach(function() {
-            global.env.opts.access = access;
-            global.env.opts.private = priv;
+            runtime.opts.access = access;
+            runtime.opts.private = priv;
         });
 
         var array = [
@@ -1035,7 +1036,7 @@ describe("jsdoc/util/templateHelper", function() {
         it('should prune private members if env.opts.private is falsy', function() {
             var pruned;
 
-            global.env.opts.private = false;
+            runtime.opts.private = false;
             pruned = helper.prune( taffy(arrayPrivate) )().get();
             compareObjectArrays([], pruned);
         });
@@ -1044,7 +1045,7 @@ describe("jsdoc/util/templateHelper", function() {
             var pruned;
             var keepPublic = [{access: 'public'}];
 
-            global.env.opts.access = 'public';
+            runtime.opts.access = 'public';
             pruned = helper.prune( taffy(arrayMixed) )().get();
             compareObjectArrays(keepPublic, pruned);
         });
@@ -1053,7 +1054,7 @@ describe("jsdoc/util/templateHelper", function() {
             var pruned;
             var keepUndefined = [{asdf: true}];
 
-            global.env.opts.access = 'undefined';
+            runtime.opts.access = 'undefined';
             pruned = helper.prune( taffy(arrayMixed) )().get();
             compareObjectArrays(keepUndefined, pruned);
         });
@@ -1062,7 +1063,7 @@ describe("jsdoc/util/templateHelper", function() {
             var pruned;
             var keepProtected = [{access: 'protected'}];
 
-            global.env.opts.access = 'protected';
+            runtime.opts.access = 'protected';
             pruned = helper.prune( taffy(arrayMixed) )().get();
             compareObjectArrays(keepProtected, pruned);
         });
@@ -1071,7 +1072,7 @@ describe("jsdoc/util/templateHelper", function() {
             var pruned;
             var keepPrivate = [{access: 'private'}];
 
-            global.env.opts.access = 'private';
+            runtime.opts.access = 'private';
             pruned = helper.prune( taffy(arrayMixed) )().get();
             compareObjectArrays(keepPrivate, pruned);
         });
@@ -1080,7 +1081,7 @@ describe("jsdoc/util/templateHelper", function() {
             var pruned;
             var keepPublicProtected = [{access: 'public'}, {access: 'protected'}];
 
-            global.env.opts.access = ['public', 'protected'];
+            runtime.opts.access = ['public', 'protected'];
             pruned = helper.prune( taffy(arrayMixed) )().get();
             compareObjectArrays(keepPublicProtected, pruned);
         });
@@ -1088,7 +1089,7 @@ describe("jsdoc/util/templateHelper", function() {
         it('should keep everything if env.opts.access contains "all"', function() {
             var pruned;
 
-            global.env.opts.access = 'all';
+            runtime.opts.access = 'all';
             pruned = helper.prune( taffy(arrayMixed) )().get();
 
             compareObjectArrays(arrayMixed, pruned);
@@ -1097,7 +1098,7 @@ describe("jsdoc/util/templateHelper", function() {
         it('should not prune private members if env.opts.private is truthy', function() {
             var pruned;
 
-            global.env.opts.private = true;
+            runtime.opts.private = true;
             pruned = helper.prune( taffy(arrayPrivate) )().get();
             compareObjectArrays(arrayPrivate, pruned);
         });
@@ -1150,7 +1151,7 @@ describe("jsdoc/util/templateHelper", function() {
 
         it("creates links to tutorials if they exist", function() {
             // load the tutorials we already have for the tutorials tests
-            resolver.load(global.env.dirname + "/test/tutorials/tutorials");
+            resolver.load(runtime.dirname + "/test/tutorials/tutorials");
             resolver.resolve();
 
             var url = helper.tutorialToUrl('test');
@@ -1219,7 +1220,7 @@ describe("jsdoc/util/templateHelper", function() {
         // now we do non-missing tutorials.
         it("returns a link to the tutorial if not missing", function() {
             // load the tutorials we already have for the tutorials tests
-            resolver.load(global.env.dirname + "/test/tutorials/tutorials");
+            resolver.load(runtime.dirname + "/test/tutorials/tutorials");
             resolver.resolve();
 
             var link = helper.toTutorial('constructor', 'The Constructor tutorial');
@@ -1243,9 +1244,9 @@ describe("jsdoc/util/templateHelper", function() {
         var keys = Object.keys(hash);
         var storage = {};
         for (var i = 0; i < keys.length; ++i) {
-            storage[keys[i]] = global.env.conf.templates[keys[i]];
+            storage[keys[i]] = runtime.conf.templates[keys[i]];
             // works because hash[key] is a scalar not an array/object
-            global.env.conf.templates[keys[i]] = hash[keys[i]];
+            runtime.conf.templates[keys[i]] = hash[keys[i]];
         }
         return storage;
     }
@@ -1253,7 +1254,7 @@ describe("jsdoc/util/templateHelper", function() {
     function restoreConfTemplates(storage) {
         var keys = Object.keys(storage);
         for (var i = 0; i < keys.length; ++i) {
-            global.env.conf.templates[keys[i]] = storage[keys[i]];
+            runtime.conf.templates[keys[i]] = storage[keys[i]];
         }
     }
 

@@ -18,6 +18,12 @@ module.exports = (function() {
 
 var logger = require('jsdoc/util/logger');
 var stripJsonComments = require('strip-json-comments');
+var Scanner = require('./lib/jsdoc/src/scanner').Scanner;
+var scanner = new Scanner();
+var Parser = require('./lib/jsdoc/src/parser');
+var parser;
+var timer = {};
+var runtime = require('./lib/jsdoc/util/runtime');
 
 var hasOwnProp = Object.prototype.hasOwnProperty;
 
@@ -28,28 +34,9 @@ var props = {
     tmpdir: null
 };
 
-var app = global.app;
-var env = global.env;
-
 var FATAL_ERROR_MESSAGE = 'Exiting JSDoc because an error occurred. See the previous log ' +
     'messages for details.';
 var cli = {};
-
-// TODO: docs
-cli.setVersionInfo = function() {
-    var fs = require('fs');
-    var path = require('path');
-
-    // allow this to throw--something is really wrong if we can't read our own package file
-    var info = JSON.parse( fs.readFileSync(path.join(env.dirname, 'package.json'), 'utf8') );
-
-    env.version = {
-        number: info.version,
-        revision: new Date( parseInt(info.revision, 10) ).toUTCString()
-    };
-
-    return cli;
-};
 
 // TODO: docs
 cli.loadConfig = function() {
@@ -68,7 +55,7 @@ cli.loadConfig = function() {
     };
 
     try {
-        env.opts = args.parse(env.args);
+        runtime.parseOptions();
     }
     catch (e) {
         console.error(e.message + '\n');
@@ -77,7 +64,7 @@ cli.loadConfig = function() {
         });
     }
 
-    confPath = env.opts.configure || path.join(env.dirname, 'conf.json');
+    confPath = runtime.opts.configure || path.join(runtime.dirname, 'conf.json');
     try {
         isFile = fs.statSync(confPath).isFile();
     }
@@ -85,12 +72,12 @@ cli.loadConfig = function() {
         isFile = false;
     }
 
-    if ( !isFile && !env.opts.configure ) {
-        confPath = path.join(env.dirname, 'conf.json.EXAMPLE');
+    if ( !isFile && !runtime.opts.configure ) {
+        confPath = path.join(runtime.dirname, 'conf.json.EXAMPLE');
     }
 
     try {
-        env.conf = new Config( stripJsonComments(fs.readFileSync(confPath, 'utf8')) )
+        runtime.conf = new Config( stripJsonComments(fs.readFileSync(confPath, 'utf8')) )
             .get();
     }
     catch (e) {
@@ -99,7 +86,7 @@ cli.loadConfig = function() {
     }
 
     // look for options on the command line, in the config file, and in the defaults, in that order
-    env.opts = _.defaults(env.opts, env.conf.opts, defaultOpts);
+    runtime.opts = _.defaults(runtime.opts, runtime.conf.opts, defaultOpts);
 
     return cli;
 };
@@ -114,14 +101,14 @@ cli.configureLogger = function() {
         cli.exit(1);
     }
 
-    if (env.opts.debug) {
+    if (runtime.opts.debug) {
         logger.setLevel(logger.LEVELS.DEBUG);
     }
-    else if (env.opts.verbose) {
+    else if (runtime.opts.verbose) {
         logger.setLevel(logger.LEVELS.INFO);
     }
 
-    if (env.opts.pedantic) {
+    if (runtime.opts.pedantic) {
         logger.once('logger:warn', recoverableError);
         logger.once('logger:error', fatalError);
     }
@@ -140,8 +127,8 @@ cli.logStart = function() {
 
     logger.debug('Environment info: %j', {
         env: {
-            conf: env.conf,
-            opts: env.opts
+            conf: runtime.conf,
+            opts: runtime.opts
         }
     });
 };
@@ -151,8 +138,8 @@ cli.logFinish = function() {
     var delta;
     var deltaSeconds;
 
-    if (env.run.finish && env.run.start) {
-        delta = env.run.finish.getTime() - env.run.start.getTime();
+    if (timer.finish && timer.start) {
+        delta = timer.finish.getTime() - timer.start.getTime();
     }
 
     if (delta !== undefined) {
@@ -165,7 +152,7 @@ cli.logFinish = function() {
 cli.runCommand = function(cb) {
     var cmd;
 
-    var opts = env.opts;
+    var opts = runtime.opts;
 
     function done(errorCode) {
         if (!errorCode && props.shouldExitWithError) {
@@ -204,7 +191,7 @@ cli.printHelp = function(cb) {
 cli.runTests = function(cb) {
     var path = require('jsdoc/path');
 
-    var runner = require( path.join(env.dirname, 'test/runner') );
+    var runner = require( path.join(runtime.dirname, 'test/runner') );
 
     console.log('Running tests...');
     runner(function(failCount) {
@@ -214,7 +201,8 @@ cli.runTests = function(cb) {
 
 // TODO: docs
 cli.getVersion = function() {
-    return 'JSDoc ' + env.version.number + ' (' + env.version.revision + ')';
+    var version = require('jsdoc/version');
+    return 'JSDoc ' + version.number + ' (' + version.revision + ')';
 };
 
 // TODO: docs
@@ -228,9 +216,10 @@ cli.printVersion = function(cb) {
 
 // TODO: docs
 cli.main = function(cb) {
+    timer.start = new Date();
     cli.scanFiles();
 
-    if (env.sourceFiles.length) {
+    if (runtime.sourceFiles.length) {
         cli.createParser()
             .parseFiles()
             .processParseResults();
@@ -240,7 +229,7 @@ cli.main = function(cb) {
         cli.printHelp(cb);
     }
 
-    env.run.finish = new Date();
+    timer.finish = new Date();
     cb(0);
 };
 
@@ -263,18 +252,18 @@ function buildSourceList() {
     var packageJson;
     var readmeHtml;
     var sourceFile;
-    var sourceFiles = env.opts._ ? env.opts._.slice(0) : [];
+    var sourceFiles = runtime.opts._ ? runtime.opts._.slice(0) : [];
 
-    if (env.conf.source && env.conf.source.include) {
-        sourceFiles = sourceFiles.concat(env.conf.source.include);
+    if (runtime.conf.source && runtime.conf.source.include) {
+        sourceFiles = sourceFiles.concat(runtime.conf.source.include);
     }
 
     // load the user-specified package/README files, if any
-    if (env.opts.package) {
-        packageJson = readPackageJson(env.opts.package);
+    if (runtime.opts.package) {
+        packageJson = readPackageJson(runtime.opts.package);
     }
-    if (env.opts.readme) {
-        readmeHtml = new Readme(env.opts.readme).html;
+    if (runtime.opts.readme) {
+        readmeHtml = new Readme(runtime.opts.readme).html;
     }
 
     // source files named `package.json` or `README.md` get special treatment, unless the user
@@ -282,19 +271,19 @@ function buildSourceList() {
     for (var i = 0, l = sourceFiles.length; i < l; i++) {
         sourceFile = sourceFiles[i];
 
-        if ( !env.opts.package && /\bpackage\.json$/i.test(sourceFile) ) {
+        if ( !runtime.opts.package && /\bpackage\.json$/i.test(sourceFile) ) {
             packageJson = readPackageJson(sourceFile);
             sourceFiles.splice(i--, 1);
         }
 
-        if ( !env.opts.readme && /(\bREADME|\.md)$/i.test(sourceFile) ) {
+        if ( !runtime.opts.readme && /(\bREADME|\.md)$/i.test(sourceFile) ) {
             readmeHtml = new Readme(sourceFile).html;
             sourceFiles.splice(i--, 1);
         }
     }
 
     props.packageJson = packageJson;
-    env.opts.readme = readmeHtml;
+    runtime.opts.readme = readmeHtml;
 
     return sourceFiles;
 }
@@ -305,13 +294,13 @@ cli.scanFiles = function() {
 
     var filter;
 
-    env.opts._ = buildSourceList();
+    runtime.opts._ = buildSourceList();
 
     // are there any files to scan and parse?
-    if (env.conf.source && env.opts._.length) {
-        filter = new Filter(env.conf.source);
+    if (runtime.conf.source && runtime.opts._.length) {
+        filter = new Filter(runtime.conf.source);
 
-        env.sourceFiles = app.jsdoc.scanner.scan(env.opts._, (env.opts.recurse ? 10 : undefined),
+        runtime.sourceFiles = scanner.scan(runtime.opts._, (runtime.opts.recurse ? 10 : undefined),
             filter);
     }
 
@@ -341,18 +330,17 @@ function resolvePluginPaths(paths) {
 
 cli.createParser = function() {
     var handlers = require('jsdoc/src/handlers');
-    var parser = require('jsdoc/src/parser');
     var path = require('jsdoc/path');
     var plugins = require('jsdoc/plugins');
 
-    app.jsdoc.parser = parser.createParser(env.conf.parser);
+    parser = Parser.createParser(runtime.conf.parser);
 
-    if (env.conf.plugins) {
-        env.conf.plugins = resolvePluginPaths(env.conf.plugins);
-        plugins.installPlugins(env.conf.plugins, app.jsdoc.parser);
+    if (runtime.conf.plugins) {
+        runtime.conf.plugins = resolvePluginPaths(runtime.conf.plugins);
+        plugins.installPlugins(runtime.conf.plugins, parser);
     }
 
-    handlers.attachTo(app.jsdoc.parser);
+    handlers.attachTo(parser);
 
     return cli;
 };
@@ -365,11 +353,11 @@ cli.parseFiles = function() {
     var docs;
     var packageDocs;
 
-    props.docs = docs = app.jsdoc.parser.parse(env.sourceFiles, env.opts.encoding);
+    props.docs = docs = parser.parse(runtime.sourceFiles, runtime.opts.encoding);
 
     // If there is no package.json, just create an empty package
     packageDocs = new Package(props.packageJson);
-    packageDocs.files = env.sourceFiles || [];
+    packageDocs.files = runtime.sourceFiles || [];
     docs.push(packageDocs);
 
     logger.debug('Indexing doclets...');
@@ -380,13 +368,13 @@ cli.parseFiles = function() {
     borrow.resolveBorrows(docs);
     logger.debug('Post-processing complete.');
 
-    app.jsdoc.parser.fireProcessingComplete(docs);
+    parser.fireProcessingComplete(docs);
 
     return cli;
 };
 
 cli.processParseResults = function() {
-    if (env.opts.explain) {
+    if (runtime.opts.explain) {
         cli.dumpParseResults();
     }
     else {
@@ -407,8 +395,8 @@ cli.dumpParseResults = function() {
 cli.resolveTutorials = function() {
     var resolver = require('jsdoc/tutorial/resolver');
 
-    if (env.opts.tutorials) {
-        resolver.load(env.opts.tutorials);
+    if (runtime.opts.tutorials) {
+        resolver.load(runtime.opts.tutorials);
         resolver.resolve();
     }
 
@@ -422,17 +410,17 @@ cli.generateDocs = function() {
 
     var template;
 
-    env.opts.template = (function() {
-        var publish = env.opts.template || 'templates/default';
+    runtime.opts.template = (function() {
+        var publish = runtime.opts.template || 'templates/default';
         var templatePath = path.getResourcePath(publish);
 
         // if we didn't find the template, keep the user-specified value so the error message is
         // useful
-        return templatePath || env.opts.template;
+        return templatePath || runtime.opts.template;
     })();
 
     try {
-        template = require(env.opts.template + '/publish');
+        template = require(runtime.opts.template + '/publish');
     }
     catch(e) {
         logger.fatal('Unable to load template: ' + e.message || e);
@@ -443,13 +431,13 @@ cli.generateDocs = function() {
         logger.printInfo('Generating output files...');
         template.publish(
             taffy(props.docs),
-            env.opts,
+            runtime.opts,
             resolver.root
         );
         logger.info('complete.');
     }
     else {
-        logger.fatal(env.opts.template + ' does not export a "publish" function. Global ' +
+        logger.fatal(runtime.opts.template + ' does not export a "publish" function. Global ' +
             '"publish" functions are no longer supported.');
     }
 

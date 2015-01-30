@@ -8,9 +8,10 @@
 
 var _ = require('underscore');
 var util = require('util');
+var runtime = require('jsdoc/util/runtime');
 
-var conf = env.conf.eventDumper || {};
-var isRhino = require('jsdoc/util/runtime').isRhino();
+var conf = runtime.conf.eventDumper || {};
+var isRhino = runtime.isRhino();
 
 // Dump the included parser events (defaults to all events)
 var events = conf.include || [

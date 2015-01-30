@@ -9,6 +9,8 @@ var path = require('jsdoc/path');
 var taffy = require('taffydb').taffy;
 var template = require('jsdoc/template');
 var util = require('util');
+var runtime = require('jsdoc/util/runtime');
+var version = require('jsdoc/version');
 
 var htmlsafe = helper.htmlsafe;
 var linkto = helper.linkto;
@@ -19,7 +21,7 @@ var hasOwnProp = Object.prototype.hasOwnProperty;
 var data;
 var view;
 
-var outdir = path.normalize(env.opts.destination);
+var outdir = path.normalize(runtime.opts.destination);
 
 function find(spec) {
     return helper.find(data, spec);
@@ -211,7 +213,8 @@ function generate(title, docs, filename, resolveLinks) {
 
     var docData = {
         title: title,
-        docs: docs
+        docs: docs,
+        version: version
     };
 
     var outpath = path.join(outdir, filename),
@@ -378,7 +381,7 @@ function buildNav(members) {
 exports.publish = function(taffyData, opts, tutorials) {
     data = taffyData;
 
-    var conf = env.conf.templates || {};
+    var conf = runtime.conf.templates || {};
     conf.default = conf.default || {};
 
     var templatePath = path.normalize(opts.template);
@@ -620,7 +623,8 @@ exports.publish = function(taffyData, opts, tutorials) {
             title: title,
             header: tutorial.title,
             content: tutorial.parse(),
-            children: tutorial.children
+            children: tutorial.children,
+            version: version
         };
 
         var tutorialPath = path.join(outdir, filename),

@@ -3,6 +3,7 @@
 describe('jsdoc/src/filter', function() {
     var filter = require('jsdoc/src/filter');
     var path = require('jsdoc/path');
+    var runtime = require('jsdoc/util/runtime');
 
     it('should exist', function() {
         expect(filter).toBeDefined();
@@ -60,7 +61,7 @@ describe('jsdoc/src/filter', function() {
                     exclude: [filename]
                 });
 
-                expect(myFilter.exclude).toEqual([path.resolve(global.env.pwd, filename)]);
+                expect(myFilter.exclude).toEqual([path.resolve(runtime.pwd, filename)]);
             });
         });
 
@@ -100,7 +101,7 @@ describe('jsdoc/src/filter', function() {
                     '/yes.jsdoc',
                     '/_nope.js',
                     '.ignore',
-                    path.normalize(global.env.pwd + '/scratch/conf.js')
+                    path.normalize(runtime.pwd + '/scratch/conf.js')
                 ];
                 myFilter = new filter.Filter({
                     includePattern: defaultIncludePattern,

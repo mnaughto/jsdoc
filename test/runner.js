@@ -9,28 +9,29 @@
 var fs = require('jsdoc/fs');
 var logger = require('jsdoc/util/logger');
 var path = require('path');
+var runtime = require('jsdoc/util/runtime');
 
 fs.existsSync = fs.existsSync || path.existsSync;
 
-require( path.join(env.dirname, 'test/jasmine-jsdoc') );
+require( path.join(runtime.dirname, 'test/jasmine-jsdoc') );
 
 var hasOwnProp = Object.prototype.hasOwnProperty;
 
 var opts = {
-    verbose: env.opts.verbose || false,
-    showColors: env.opts.nocolor === true ? false : true
+    verbose: runtime.opts.verbose || false,
+    showColors: runtime.opts.nocolor === true ? false : true
 };
 
 var extensions = 'js';
-var match = env.opts.match || '.';
+var match = runtime.opts.match || '.';
 if (match instanceof Array) {
     match = match.join("|");
 }
 opts.matcher = new RegExp("(" + match + ")\\.(" + extensions + ")$", 'i');
 
 var specFolders = [
-    path.join(env.dirname, 'test/specs'),
-    path.join(env.dirname, 'plugins/test/specs')
+    path.join(runtime.dirname, 'test/specs'),
+    path.join(runtime.dirname, 'plugins/test/specs')
 ];
 
 var failedCount = 0;

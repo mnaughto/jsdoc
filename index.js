@@ -25,18 +25,42 @@
 	var runtime = require('./lib/jsdoc/util/runtime');
 	var Config = require('./lib/jsdoc/config');
 	var Parser = require('./lib/jsdoc/src/parser');
+
+	function resolvePluginPaths(paths) {
+	    var path = require('./lib/jsdoc/path');
+
+	    var pluginPaths = [];
+
+	    paths.forEach(function(plugin) {
+	        var basename = path.basename(plugin);
+	        var dirname = path.dirname(plugin);
+	        var pluginPath = path.getResourcePath(dirname);
+
+	        if (!pluginPath) {
+	            logger.error('Unable to find the plugin "%s"', plugin);
+	            return;
+	        }
+
+	        pluginPaths.push( path.join(pluginPath, basename) );
+	    });
+
+	    return pluginPaths;
+	}
 	
 	function JsDoc(cwd, configuration, options){
 		runtime.initialize([__dirname, cwd]);
-		runtime.conf = new Config(configuration || {});
+		runtime.conf = new Config(JSON.stringify(configuration || {})); //TODO: change config to support actual objects
+		runtime.conf = runtime.conf.get();
 		runtime.opts = options || {};
+		runtime.opts._ = ['.'];
+		runtime.loadSourceFiles();
 	}
 
 	JsDoc.prototype = {
 		createParser: function(){
-			var handlers = require('jsdoc/src/handlers');
-			var path = require('jsdoc/path');
-			var plugins = require('jsdoc/plugins');
+			var handlers = require('./lib/jsdoc/src/handlers');
+			var path = require('./lib/jsdoc/path');
+			var plugins = require('./lib/jsdoc/plugins');
 
 			parser = Parser.createParser(runtime.conf.parser);
 
@@ -50,9 +74,9 @@
 		},
 
 		parseFiles: function(){
-			var augment = require('jsdoc/augment');
-			var borrow = require('jsdoc/borrow');
-			var Package = require('jsdoc/package').Package;
+			var augment = require('./lib/jsdoc/augment');
+			var borrow = require('./lib/jsdoc/borrow');
+			var Package = require('./lib/jsdoc/package').Package;
 
 			var docs;
 			var packageDocs;
@@ -74,7 +98,7 @@
 		},
 
 		dumpResults: function(){
-			var dump = require('jsdoc/util/dumper').dump;
+			var dump = require('./lib/jsdoc/util/dumper').dump;
 			return dump(this.parseFiles());
 		}
 	};
